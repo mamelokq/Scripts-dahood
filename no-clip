@@ -1,0 +1,24 @@
+local player = game.Players.LocalPlayer
+
+-- Function to handle no-clip
+local function noClip(character)
+    game:GetService("RunService").Stepped:Connect(function()
+        if character and character.Parent then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+-- Initial character no-clip
+if player.Character then
+    noClip(player.Character)
+end
+
+-- Re-enable no-clip on respawn
+player.CharacterAdded:Connect(function(character)
+    noClip(character)
+end)
