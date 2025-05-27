@@ -1,0 +1,30 @@
+-- No Seats on Inject (No Toggle)
+
+local CollectionService = game:GetService("CollectionService")
+local workspace = game:GetService("Workspace")
+
+-- Cache seats
+local cachedSeats = {}
+
+-- Disable a seat
+local function disableSeat(seat)
+    if seat:IsA("Seat") and not cachedSeats[seat] then
+        cachedSeats[seat] = true
+        seat.Disabled = true
+        CollectionService:AddTag(seat, "Seat")
+    end
+end
+
+-- Initialize all existing seats
+for _, object in ipairs(workspace:GetDescendants()) do
+    if object:IsA("Seat") then
+        disableSeat(object)
+    end
+end
+
+-- Monitor for new seats
+workspace.DescendantAdded:Connect(function(descendant)
+    if descendant:IsA("Seat") then
+        disableSeat(descendant)
+    end
+end)
