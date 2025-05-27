@@ -1,0 +1,67 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local HumanoidStateType = Enum.HumanoidStateType
+local KOD = "K.O"
+local GRABBING_CONSTRAINT = "GRABBING_CONSTRAINT"
+
+local antiStompEnabled = true  -- Enabled by default on inject
+
+-- Function to apply anti-stomp measures to the character
+local function applyAntiStomp(character)
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    local bodyEffects = character:FindFirstChild("BodyEffects")
+
+    -- Check if knocked or grabbed
+    local knocked = bodyEffects and bodyEffects:FindFirstChild(KOD) and bodyEffects[KOD].Value
+    local grabbed = character:FindFirstChild(GRABBING_CONSTRAINT) ~= nil
+
+    if antiStompEnabled and (knocked or grabbed) then
+        -- Kill character immediately
+        humanoid.Health = 0
+
+        -- Disable collisions on all parts
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+
+        -- Disable humanoid states to prevent interactions
+        humanoid.PlatformStand = true
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+        humanoid.JumpHeight = 0
+        humanoid:SetStateEnabled(HumanoidStateType.Physics, false)
+        humanoid:SetStateEnabled(HumanoidStateType.Seated, false)
+        humanoid:SetStateEnabled(HumanoidStateType.Climbing, false)
+        humanoid:SetStateEnabled(HumanoidStateType.Freefall, false)
+        humanoid:SetStateEnabled(HumanoidStateType.Ragdoll, false)
+        
+        -- Remove all effects that might interfere
+        if bodyEffects then
+            bodyEffects:ClearAllChildren()
+        end
+    end
+end
+
+-- Connect a loop that constantly checks your character state
+RunService.Heartbeat:Connect(function()
+    local character = player.Character
+    if character then
+        applyAntiStomp(character)
+    end
+end)
+
+-- Re-apply anti-stomp logic after character respawn
+player.CharacterAdded:Connect(function(character)
+    -- Small delay to ensure character is fully loaded
+    character:WaitForChild("HumanoidRootPart", 5)
+    character:WaitForChild("Humanoid", 5)
+    -- No need to do anything here since RunService.Heartbeat is running and checks constantly
+end)
