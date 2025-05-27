@@ -1,0 +1,23 @@
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+local speedEnabled = false
+local SpeedValue = 4
+
+-- Function to toggle speed with 'T' key
+local function onInputBegan(input, isProcessed)
+    if isProcessed then return end
+    if input.KeyCode == Enum.KeyCode.T then
+        speedEnabled = not speedEnabled
+    end
+end
+
+UserInputService.InputBegan:Connect(onInputBegan)
+
+-- Update speed on heartbeat
+RunService.Heartbeat:Connect(function()
+    if speedEnabled then
+        player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + player.Character.Humanoid.MoveDirection * SpeedValue
+    end
+end)
